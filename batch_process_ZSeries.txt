@@ -1,0 +1,26 @@
+// This macro open multiple ZSeries image folders (acquired by PrairieView from Burker), 
+// read and save them as single multipage TIFFs.  In addition, the macro runs z-projection
+// for the red channel. 
+// There is more information about Bio-Formats Macro Extensions at
+//   https://imagej.net/Bio-Formats#Bio-Formats_Macro_Extensions
+
+input  = getDirectory("Input Directory");
+output = getDirectory("Output Directory");
+list   = getFileList(input);
+run("Bio-Formats Macro Extensions");
+setBatchMode(true);
+for (i = 0; i < list.length; i++){
+	    if(startsWith(list[i],"ZSeries")){ 
+            name = File.getName(list[i]);
+            // setColorMode, Composite
+            Ext.openImagePlus(input + list[i] + name + ".xml");
+            saveAs("Tiff", output + name);  
+            run("Split Channels");
+            selectWindow("C1-" + name + ".tif");
+            run("Z Project...", "projection=[Max Intensity]");
+            saveAs("Tiff", output + "MAX_C1-" + name);        
+	    } 
+	                   
+}
+setBatchMode(false);   
+Ext.close(); 
