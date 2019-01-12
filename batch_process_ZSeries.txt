@@ -12,15 +12,33 @@ setBatchMode(true);
 for (i = 0; i < list.length; i++){
 	    if(startsWith(list[i],"ZSeries")){ 
             name = File.getName(list[i]);
-            // setColorMode, Composite
             Ext.openImagePlus(input + list[i] + name + ".xml");
-            saveAs("Tiff", output + name);  
+            saveAs("Tiff", input + list[i] + name);  
             run("Split Channels");
             selectWindow("C1-" + name + ".tif");
             run("Z Project...", "projection=[Max Intensity]");
+            run("Enhance Contrast", "saturated=0.35");
+            run("Apply LUT");
             saveAs("Tiff", output + "MAX_C1-" + name);        
 	    } 
 	                   
-}
-setBatchMode(false);   
+}   
 Ext.close(); 
+
+//Stiching, unknown position
+run("Grid/Collection stitching", 
+"type=[Unknown position] " + 
+"order=[All files in directory] " + 
+"directory=["+output+"] " + 
+"output_textfile_name=TileConfiguration.txt " + 
+"fusion_method=[Linear Blending] " + 
+"regression_threshold=0.30 " + 
+"max/avg_displacement_threshold=2.50 " + 
+"absolute_displacement_threshold=3.50 " + 
+"computation_parameters=[Save memory (but be slower)] " +
+"image_output=[Fuse and display] ");
+setBatchMode(false); 
+
+// Under many conditions, images with weak signals could not be registered
+// Check the Log or the TileConfiguration.registered.txt file to see which files are registered
+// Open the other files and manually stitch them
